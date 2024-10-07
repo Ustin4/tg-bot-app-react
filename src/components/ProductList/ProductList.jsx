@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback, useEffect} from 'react';
 import './ProductList.css'
 import ProductItem from "../ProductItem/ProductItem";
 import {useTelegram} from "../../hooks/useTelegram";
@@ -13,42 +13,65 @@ const products = [
     {id: '7', title: 'Джинсы 4', price: 5500, description: 'Синего цвета, прямые'},
     {id: '8', title: 'Куртка 5', price: 12000, description: 'Зеленого цвета, теплая'},
 ]
-const getTotalPrice = (items)=>{
-return items.reduce((total, item) => {
-    return total += item.price;
-},0)
+const getTotalPrice = (items) => {
+    return items.reduce((total, item) => {
+        return total += item.price;
+    }, 0)
 }
 export const ProductList = () => {
-    const {tg} = useTelegram()
+    const {tg ,queryId} = useTelegram()
     const [addedItems, setAddedItems] = React.useState([])
 
-
-const onAdd = (product) => {
-    const alreadyAdded = addedItems.find(item => item.id === product.id);
-    let newItems = [];
-
-    if(alreadyAdded) {
-        newItems = addedItems.filter(item => item.id !== product.id);
-    } else {
-        newItems = [...addedItems, product];
-    }
-
-    setAddedItems(newItems)
-
-    if(newItems.length === 0) {
-        tg.MainButton.hide();
-    } else {
-        tg.MainButton.show();
-        tg.MainButton.setParams({
-            text: `Купить ${getTotalPrice(newItems)}`
+    const onSendData = useCallback(() => {
+        const data = {
+            products: addedItems,
+            totalPrice: getTotalPrice(addedItems),
+            queryId,
+        }
+        fetch('http://localhost:8000', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
         })
+    }, [])
+    useEffect(() => {
+        tg.onEvent('mainButtonClicked', onSendData)
+        return () => {
+            tg.offEvent('mainButtonClicked', onSendData)
+        }
+    }, [onSendData]);
+
+
+
+
+    const onAdd = (product) => {
+        const alreadyAdded = addedItems.find(item => item.id === product.id);
+        let newItems = [];
+
+        if (alreadyAdded) {
+            newItems = addedItems.filter(item => item.id !== product.id);
+        } else {
+            newItems = [...addedItems, product];
+        }
+
+        setAddedItems(newItems)
+
+        if (newItems.length === 0) {
+            tg.MainButton.hide();
+        } else {
+            tg.MainButton.show();
+            tg.MainButton.setParams({
+                text: `Купить ${getTotalPrice(newItems)}`
+            })
+        }
     }
-}
 
     return (
         <div className={'list'}>
             {products.map((item) => (
-                <ProductItem product={item} onAdd={onAdd} className={'item'} />
+                <ProductItem product={item} onAdd={onAdd} className={'item'}/>
             ))}
         </div>
     );
