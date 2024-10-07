@@ -1,13 +1,14 @@
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import './Form.css'
 import {useTelegram} from "../../hooks/useTelegram";
 
 export const Form = () => {
 
-    const [country, setCountry] = React.useState('');
-    const [street, setStreet] = React.useState('');
-    const [subject, setSubject] = React.useState('physical');
-    const {tg} = useTelegram()
+    const [country, setCountry] = useState('');
+    const [street, setStreet] = useState('');
+    const [subject, setSubject] = useState('physical');
+
+    const {tg} = useTelegram();
     const onSendData = useCallback(()=>{
     const data = {
         country,
@@ -48,14 +49,25 @@ export const Form = () => {
         setSubject(e.target.value);
     }
     return (
-        <div className={'form'}>
-            <h3>Введите ваши данные </h3>
-            <input className={'input'} type="text" placeholder={'Страна'} value={country} onChange={onChangeCountry}/>
-            <input className={'input'} type="text" placeholder={'Улица'} value={street} onChange={onChangeStreet}/>
-
-            <select className={'select'} value={subject} onChange={onChangeSubject}>
-                <option value="physical">физ лицо</option>
-                <option value="legal">юр лицо</option>
+        <div className={"form"}>
+            <h3>Введите ваши данные</h3>
+            <input
+                className={'input'}
+                type="text"
+                placeholder={'Страна'}
+                value={country}
+                onChange={onChangeCountry}
+            />
+            <input
+                className={'input'}
+                type="text"
+                placeholder={'Улица'}
+                value={street}
+                onChange={onChangeStreet}
+            />
+            <select value={subject} onChange={onChangeSubject} className={'select'}>
+                <option value={'physical'}>Физ. лицо</option>
+                <option value={'legal'}>Юр. лицо</option>
             </select>
         </div>
     );
